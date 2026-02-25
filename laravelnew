@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+VERSION="0.1.0"
+
+usage() {
+  echo "Usage: laravelnew <app-name> [--here] [--using=<starter-kit>] [--version]"
+  echo
+  echo "Options:"
+  echo "  --here                 Create the app, then copy it into the current directory"
+  echo "  --using=<starter-kit>  Forwarded to: laravel new <app-name> --using=<starter-kit>"
+  echo "  --version              Show laravelnew version"
+  echo "  -h, --help             Show this help"
+}
+
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  usage
+  exit 0
+fi
+
+if [[ "${1:-}" == "--version" || "${1:-}" == "-v" ]]; then
+  echo "$VERSION"
+  exit 0
+fi
+
+APP_NAME=""
+HERE="false"
+USING=""
+
+# Parse args (order-independent)
+for arg in "$@"; do
+  case "$arg" in
+    --here)
+      HERE="true"
+      ;;
+    --using=*)
+      USING="${arg#--using=}"
+      ;;
+    --version|-v)
+      echo "$VERSION"
+      exit 0
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    -*)
+      echo "Unknown option: $arg"
+      usage
+      exit 1
+      ;;
+    *)
+      if [[ -z "$APP_NAME" ]]; then
+        APP_NAME="$arg"
+      else
+        echo "Unexpected argument: $arg"
+        usage
+        exit 1
+      fi
+      ;;
+  esac
+done
+
+if [[ -z "$APP_NAME" ]]; then
+  usage
+  exit 1
+fi
+
+# Keep app names safe and predictable for paths and container scripting.
+if [[ ! "$APP_NAME" =~ ^[A-Za-z0-9._-]+$ ]]; then
+  echo "Invalid app name: $APP_NAME"
+  echo "Allowed characters: letters, numbers, dot, dash, underscore."
+  exit 1
+fi
+
+# Fast-fail if target already exists (both default and --here flow create this folder first).
+if [[ -e "$APP_NAME" ]]; then
+  echo "Path already exists: $APP_NAME"
+  exit 1
+fi
+
+docker run --rm -it \
+  -u "$(id -u):$(id -g)" \
+  -v "$(pwd):/app" \
+  -w /app \
+  -e COMPOSER_HOME=/tmp/composer \
+  -e APP_NAME="$APP_NAME" \
+  -e HERE="$HERE" \
+  -e USING="$USING" \
+  composer:latest \
+  bash -lc '
+    set -euo pipefail
+
+    export PATH="$COMPOSER_HOME/vendor/bin:$PATH"
+
+    echo "==> Installing Laravel installer (container-only)"
+    composer global require laravel/installer
+
+    echo "==> Creating Laravel project: $APP_NAME"
+    if [ -n "$USING" ]; then
+      laravel new "$APP_NAME" --using="$USING"
+    else
+      laravel new "$APP_NAME"
+    fi
+
+    if [ "$HERE" = "true" ]; then
+      echo
+      echo "==> --here will copy $APP_NAME into the current directory."
+      echo "    WARNING: This may overwrite existing files."
+      printf "Proceed with copying into the current directory? [y/N]: "
+      read -r ans
+
+      case "$ans" in
+        y|Y|yes|YES)
+          echo "==> Copying project into current directory..."
+          cp -R "/app/$APP_NAME"/. /app/
+          echo "==> Removing temporary directory: $APP_NAME"
+          rm -rf "/app/$APP_NAME"
+
+          echo "==> Installing Sail (in current directory)"
+          cd /app
+          php artisan sail:install
+          echo "==> Done. Next (on host): ./vendor/bin/sail up"
+          exit 0
+          ;;
+        *)
+          echo "==> Skipping copy. Continuing as if --here was not used."
+          ;;
+      esac
+    fi
+
+    echo "==> Installing Sail (in $APP_NAME/)"
+    cd "/app/$APP_NAME"
+    php artisan sail:install
+
+    echo "==> Done. Next (on host): cd $APP_NAME && ./vendor/bin/sail up"
+  '
