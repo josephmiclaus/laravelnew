@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="0.1.0"
+VERSION="0.2.0"
 
 usage() {
   echo "Usage: laravelnew <app-name> [--here] [--using=<starter-kit>] [--version]"
@@ -93,6 +93,23 @@ docker run --rm -it \
 
     export PATH="$COMPOSER_HOME/vendor/bin:$PATH"
 
+    boost_install() {
+      local BOOST_FILE="boost.json"
+      local sail_true="false"
+
+      if [ ! -f "$BOOST_FILE" ]; then
+        return
+      fi
+
+      sail_true="$(php -r "\$path = \$argv[1]; \$raw = @file_get_contents(\$path); if (\$raw === false) { echo \"false\"; exit(0); } \$data = json_decode(\$raw, true); if (! is_array(\$data) || json_last_error() !== JSON_ERROR_NONE) { echo \"false\"; exit(0); } echo (array_key_exists(\"sail\", \$data) && \$data[\"sail\"] === true) ? \"true\" : \"false\";" "$BOOST_FILE" 2>/dev/null || echo "false")"
+
+      if [ "$sail_true" = "true" ]; then
+        return
+      fi
+
+      php artisan boost:install
+    }
+
     echo "==> Installing Laravel installer (container-only)"
     composer global require laravel/installer
 
@@ -120,6 +137,7 @@ docker run --rm -it \
           echo "==> Installing Sail (in current directory)"
           cd /app
           php artisan sail:install
+          boost_install
           echo "==> Done. Next (on host): ./vendor/bin/sail up"
           exit 0
           ;;
@@ -132,6 +150,7 @@ docker run --rm -it \
     echo "==> Installing Sail (in $APP_NAME/)"
     cd "/app/$APP_NAME"
     php artisan sail:install
+    boost_install
 
     echo "==> Done. Next (on host): cd $APP_NAME && ./vendor/bin/sail up"
   '
