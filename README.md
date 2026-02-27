@@ -43,8 +43,8 @@ laravelnew <app-name> [--here] [--using=<starter-kit>]
 ```
 
 Options:
-- `--here`: creates the app in a temporary `<app-name>` directory, then copies it into the current directory.
-- `--using=<starter-kit>`: forwards to `laravel new <app-name> --using=<starter-kit>`. Use the full Composer package name (for example, `laravel/blank-livewire-starter-kit`).
+- `--here`: creates the app in a temporary `<app-name>` directory, then copies it into the current directory and deletes the temporary directory.
+- `--using=<starter-kit>`: forwards to `laravel new <app-name> --using=<starter-kit>`.
 
 ## Examples
 
