@@ -80,6 +80,7 @@ if [[ -e "$APP_NAME" ]]; then
 fi
 
 docker run --rm -it \
+  --pull=always \
   -u "$(id -u):$(id -g)" \
   -v "$(pwd):/app" \
   -w /app \
