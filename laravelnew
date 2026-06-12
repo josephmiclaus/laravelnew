@@ -116,9 +116,9 @@ docker run --rm -it \
 
     echo "==> Creating Laravel project: $APP_NAME"
     if [ -n "$USING" ]; then
-      laravel new "$APP_NAME" --using="$USING"
+      laravel new "$APP_NAME" --using="$USING" --no-node
     else
-      laravel new "$APP_NAME"
+      laravel new "$APP_NAME" --no-node
     fi
 
     if [ "$HERE" = "true" ]; then
@@ -139,7 +139,8 @@ docker run --rm -it \
           cd /app
           php artisan sail:install
           boost_install
-          echo "==> Done. Next (on host): ./vendor/bin/sail up"
+          echo "==> Done. Next (on host):   ./vendor/bin/sail up"
+          echo "    After Sail is running:  ./vendor/bin/sail npm install && ./vendor/bin/sail npm run build"
           exit 0
           ;;
         *)
@@ -153,5 +154,6 @@ docker run --rm -it \
     php artisan sail:install
     boost_install
 
-    echo "==> Done. Next (on host): cd $APP_NAME && ./vendor/bin/sail up"
+    echo "==> Done. Next (on host):   cd $APP_NAME && ./vendor/bin/sail up"
+    echo "    After Sail is running:  cd $APP_NAME && ./vendor/bin/sail npm install && ./vendor/bin/sail npm run build"
   '
