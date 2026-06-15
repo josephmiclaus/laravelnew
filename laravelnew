@@ -4,11 +4,12 @@ set -euo pipefail
 VERSION="0.2.0"
 
 usage() {
-  echo "Usage: laravelnew <app-name> [--here] [--using=<starter-kit>] [--version]"
+  echo "Usage: laravelnew <app-name> [--here] [--using=<starter-kit>] [--start] [--version]"
   echo
   echo "Options:"
   echo "  --here                 Create the app, then copy it into the current directory"
   echo "  --using=<starter-kit>  Forwarded to: laravel new <app-name> --using=<starter-kit>"
+  echo "  --start                Start Sail and the frontend dev server after creation"
   echo "  --version              Show laravelnew version"
   echo "  -h, --help             Show this help"
 }
@@ -25,6 +26,7 @@ fi
 
 APP_NAME=""
 HERE="false"
+START="false"
 USING=""
 
 # Parse args (order-independent)
@@ -32,6 +34,9 @@ for arg in "$@"; do
   case "$arg" in
     --here)
       HERE="true"
+      ;;
+    --start)
+      START="true"
       ;;
     --using=*)
       USING="${arg#--using=}"
@@ -79,6 +84,17 @@ if [[ -e "$APP_NAME" ]]; then
   exit 1
 fi
 
+start_project() {
+  local project_dir="$1"
+
+  (
+    cd "$project_dir"
+    ./vendor/bin/sail up -d
+    ./vendor/bin/sail npm install
+    ./vendor/bin/sail npm run dev
+  )
+}
+
 prompt_start_project() {
   local project_dir=""
   local project_label=""
@@ -94,6 +110,11 @@ prompt_start_project() {
     return
   fi
 
+  if [[ "$START" == "true" ]]; then
+    start_project "$project_dir"
+    return
+  fi
+
   if [[ ! -t 0 ]]; then
     return
   fi
@@ -104,12 +125,7 @@ prompt_start_project() {
 
   case "$ans" in
     y|Y|yes|YES)
-      (
-        cd "$project_dir"
-        ./vendor/bin/sail up -d
-        ./vendor/bin/sail npm install
-        ./vendor/bin/sail npm run dev
-      )
+      start_project "$project_dir"
       ;;
     *)
       echo "==> Done. Next (on host):   ${project_label}./vendor/bin/sail up"
