@@ -79,6 +79,45 @@ if [[ -e "$APP_NAME" ]]; then
   exit 1
 fi
 
+prompt_start_project() {
+  local project_dir=""
+  local project_label=""
+  local ans=""
+
+  if [[ "$HERE" == "true" && ! -e "$APP_NAME" && -x "./vendor/bin/sail" ]]; then
+    project_dir="."
+    project_label=""
+  elif [[ -x "$APP_NAME/vendor/bin/sail" ]]; then
+    project_dir="$APP_NAME"
+    project_label="cd $APP_NAME && "
+  else
+    return
+  fi
+
+  if [[ ! -t 0 ]]; then
+    return
+  fi
+
+  echo
+  printf "Start Sail and the frontend dev server now? [y/N]: "
+  read -r ans || ans=""
+
+  case "$ans" in
+    y|Y|yes|YES)
+      (
+        cd "$project_dir"
+        ./vendor/bin/sail up -d
+        ./vendor/bin/sail npm install
+        ./vendor/bin/sail npm run dev
+      )
+      ;;
+    *)
+      echo "==> Done. Next (on host):   ${project_label}./vendor/bin/sail up"
+      echo "    After Sail is running:  ${project_label}./vendor/bin/sail npm install && ./vendor/bin/sail npm run dev"
+      ;;
+  esac
+}
+
 docker run --rm -it \
   --pull=always \
   -u "$(id -u):$(id -g)" \
@@ -139,8 +178,6 @@ docker run --rm -it \
           cd /app
           php artisan sail:install
           boost_install
-          echo "==> Done. Next (on host):   ./vendor/bin/sail up"
-          echo "    After Sail is running:  ./vendor/bin/sail npm install && ./vendor/bin/sail npm run build"
           exit 0
           ;;
         *)
@@ -153,7 +190,6 @@ docker run --rm -it \
     cd "/app/$APP_NAME"
     php artisan sail:install
     boost_install
-
-    echo "==> Done. Next (on host):   cd $APP_NAME && ./vendor/bin/sail up"
-    echo "    After Sail is running:  cd $APP_NAME && ./vendor/bin/sail npm install && ./vendor/bin/sail npm run build"
   '
+
+prompt_start_project
