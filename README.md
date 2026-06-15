@@ -39,12 +39,13 @@ laravelnew --version
 ## Usage
 
 ```bash
-laravelnew <app-name> [--here] [--using=<starter-kit>]
+laravelnew <app-name> [--here] [--using=<starter-kit>] [--start]
 ```
 
 Options:
 - `--here`: creates the app in a temporary `<app-name>` directory, then copies it into the current directory and deletes the temporary directory.
 - `--using=<starter-kit>`: forwards to `laravel new <app-name> --using=<starter-kit>`.
+- `--start`: starts Sail, installs frontend dependencies, and runs the frontend dev server after creation.
 
 ## Examples
 
@@ -64,6 +65,12 @@ Create, then copy into the current directory:
 
 ```bash
 laravelnew blog --here
+```
+
+Create and start the project:
+
+```bash
+laravelnew blog --start
 ```
 
 ## License
