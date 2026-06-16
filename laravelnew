@@ -188,11 +188,11 @@ docker run --rm -it \
       echo
       echo "==> --here will copy $APP_NAME into the current directory."
       echo "    WARNING: This may overwrite existing files."
-      printf "Proceed with copying into the current directory? [y/N]: "
+      printf "Proceed with copying into the current directory? [Y/n]: "
       read -r ans
 
       case "$ans" in
-        y|Y|yes|YES)
+        ""|y|Y|yes|YES)
           echo "==> Copying project into current directory..."
           cp -R "/app/$APP_NAME"/. /app/
           echo "==> Removing temporary directory: $APP_NAME"
