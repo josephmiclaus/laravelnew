@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="0.3.1"
+VERSION="0.4.0"
 
 usage() {
   echo "Usage: laravelnew <app-name> [--here] [--using=<starter-kit>] [--start] [--version]"
