@@ -153,11 +153,11 @@ docker run --rm -it \
       local ans=""
 
       echo
-      printf "Install Laravel Boost? [y/N]: "
+      printf "Install Laravel Boost? [Y/n]: "
       read -r ans || ans=""
 
       case "$ans" in
-        y|Y|yes|YES)
+        ""|y|Y|yes|YES)
           composer require laravel/boost --dev
           php artisan boost:install
           ;;
