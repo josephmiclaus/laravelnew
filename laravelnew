@@ -198,7 +198,7 @@ docker run --rm -it \
           echo "==> Removing temporary directory: $APP_NAME"
           rm -rf "/app/$APP_NAME"
 
-          echo "==> Installing Sail (in current directory)"
+          echo "==> Installing Sail"
           cd /app
           php artisan sail:install
           boost_install
@@ -210,7 +210,7 @@ docker run --rm -it \
       esac
     fi
 
-    echo "==> Installing Sail (in $APP_NAME/)"
+    echo "==> Installing Sail"
     cd "/app/$APP_NAME"
     php artisan sail:install
     boost_install
