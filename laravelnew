@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="0.3.0"
+VERSION="0.3.1"
 
 usage() {
   echo "Usage: laravelnew <app-name> [--here] [--using=<starter-kit>] [--start] [--version]"
@@ -170,10 +170,18 @@ docker run --rm -it \
     composer global require laravel/installer
 
     echo "==> Creating Laravel project: $APP_NAME"
-    if [ -n "$USING" ]; then
-      laravel new "$APP_NAME" --using="$USING" --no-node
+    no_node_arg=()
+    if laravel new --help 2>/dev/null | grep -q -- "--no-node"; then
+      no_node_arg=(--no-node)
     else
-      laravel new "$APP_NAME" --no-node
+      echo "==> Warning: installed Laravel installer does not support --no-node yet; continuing without it."
+      echo "    If Laravel asks to run npm install and npm run build, answer no. Sail can run npm after project creation."
+    fi
+
+    if [ -n "$USING" ]; then
+      laravel new "$APP_NAME" --using="$USING" "${no_node_arg[@]}"
+    else
+      laravel new "$APP_NAME" "${no_node_arg[@]}"
     fi
 
     if [ "$HERE" = "true" ]; then
