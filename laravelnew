@@ -150,20 +150,21 @@ docker run --rm -it \
     export PATH="$COMPOSER_HOME/vendor/bin:$PATH"
 
     boost_install() {
-      local BOOST_FILE="boost.json"
-      local sail_true="false"
+      local ans=""
 
-      if [ ! -f "$BOOST_FILE" ]; then
-        return
-      fi
+      echo
+      printf "Install Laravel Boost? [y/N]: "
+      read -r ans || ans=""
 
-      sail_true="$(php -r "\$path = \$argv[1]; \$raw = @file_get_contents(\$path); if (\$raw === false) { echo \"false\"; exit(0); } \$data = json_decode(\$raw, true); if (! is_array(\$data) || json_last_error() !== JSON_ERROR_NONE) { echo \"false\"; exit(0); } echo (array_key_exists(\"sail\", \$data) && \$data[\"sail\"] === true) ? \"true\" : \"false\";" "$BOOST_FILE" 2>/dev/null || echo "false")"
-
-      if [ "$sail_true" = "true" ]; then
-        return
-      fi
-
-      php artisan boost:install
+      case "$ans" in
+        y|Y|yes|YES)
+          composer require laravel/boost --dev
+          php artisan boost:install
+          ;;
+        *)
+          echo "==> Skipping Laravel Boost installation."
+          ;;
+      esac
     }
 
     echo "==> Installing Laravel installer (container-only)"
@@ -177,11 +178,10 @@ docker run --rm -it \
       echo "==> Warning: installed Laravel installer does not support --no-node yet; continuing without it."
       echo "    If Laravel asks to run npm install and npm run build, answer no. Sail can run npm after project creation."
     fi
-
     if [ -n "$USING" ]; then
-      laravel new "$APP_NAME" --using="$USING" "${no_node_arg[@]}"
+      laravel new "$APP_NAME" --using="$USING" "${no_node_arg[@]}" --no-boost
     else
-      laravel new "$APP_NAME" "${no_node_arg[@]}"
+      laravel new "$APP_NAME" "${no_node_arg[@]}" --no-boost
     fi
 
     if [ "$HERE" = "true" ]; then
