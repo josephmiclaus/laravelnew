@@ -1,11 +1,18 @@
 # laravelnew
 
-`laravelnew` is a Docker-first Bash command for creating new Laravel projects without managing local PHP.
+`laravelnew` creates a Laravel project using only Docker.
 
-## Requirements
+Keep Docker running, then run `laravelnew <app-name>`. You do not need PHP, Composer, or the Laravel installer installed locally. Node/npm can run through Sail/Docker too.
+
+## Why?
+
+Laravel's [installation docs](https://laravel.com/docs/13.x/installation) and [agent setup](https://laravel.com/for/agents) expect a local toolchain: PHP, Composer, the Laravel installer, and Node/npm or Bun, often via [`php.new`](https://php.new/) or [Herd](https://herd.laravel.com/).
+
+`laravelnew` runs that setup in Docker instead: the Laravel installer, Composer, Sail setup, and optional frontend commands, without installing those tools on your host.
+
+## Only requirement
 
 - Docker installed and running
-- Bash
 
 ## Manual install
 
@@ -45,7 +52,7 @@ laravelnew <app-name> [--here] [--using=<starter-kit>] [--start]
 Options:
 - `--here`: creates the app in a temporary `<app-name>` directory, then copies it into the current directory and deletes the temporary directory.
 - `--using=<starter-kit>`: forwards to `laravel new <app-name> --using=<starter-kit>`.
-- `--start`: starts Sail, installs frontend dependencies, and runs the frontend dev server after creation.
+- `--start`: starts Sail, installs frontend dependencies, and runs the frontend dev server through Sail/Docker after creation.
 
 ## Examples
 
